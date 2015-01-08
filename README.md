@@ -1,28 +1,28 @@
 # procurve-watch
-Creating backups and monitoring changes on HP Procurve switches through SSH
+Creating backups and monitoring changes on HP Procurve switches through SSH.
 
 You will have a folder for each switch containing its current and previous configuration.
 You will receive an email if a change is detected.
 
-# Purpose of this script
+### Purpose of this script
 
 1. To backup the configuration of Procurve switches through secure shell (No Telknet or TFTP)
 2. To keep track of changes in the configuration files. Changes are emailed and logged.
 
-# Audience
+### Audience
 
 Anyone who may want to backup and keep track of the configuration of some HP procurve
  switches but doesn't have the resources to implement the bigger netwerk management tools. 
 Please note that this tool does not allow you to manage or control the switches.
 
-# Security
+### Security
  
 procurve-watch uses sshpass to pass the switch password to the scp command.
 The password will be stored in a text file in etc/procurve-watch.cfg. 
 
 If your switches are configured to use ssh keys for authentication, you can set 'USESSHKEYS=False' to True.
 
-# How do I get started?
+### How do I get started?
 
 - Requirements
 
@@ -37,10 +37,10 @@ If your switches are configured to use ssh keys for authentication, you can set 
 4. edit switches/<somefilename>.txt and add the domain name or IP-address of your switches (one per line)
 5. run 'procurve-watch' 
 
-# Monitor changes
+### Monitor changes
 
 Just setup a cron job that runs procurve-watch every x hours or any interval you like.
 
-# Tips
+### Tips
 
 With many switches, it's best to output procurve-watch > to-some-log-file.txt
