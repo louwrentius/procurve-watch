@@ -1,6 +1,11 @@
 # procurve-watch
 Creating backups and monitoring changes on HP Procurve switches through SSH.
 
+-------------------------------------
+| WARNING THIS SOFTWARE IS UNTESTED |
+-------------------------------------
+
+
 You will have a folder for each switch containing its current and previous configuration.
 You will receive an email if a change is detected.
 
