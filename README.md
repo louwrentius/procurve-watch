@@ -1,6 +1,8 @@
 # procurve-watch
 Creating backups and monitoring changes on HP Procurve switches through SSH
 
+You will have a folder for each switch containing its current and previous configurations that differ from the current.
+
 # Purpose of this script
 
 1. To backup the configuration of Procurve switches through secure shell (No Telknet or TFTP)

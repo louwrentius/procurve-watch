@@ -3,25 +3,36 @@
 #
 #
 
-
 ROOTPATH=/home/tnan/procurve
+SETTINGS=$ROOTPATH/etc
+
 SWITCHPATH=$ROOTPATH/switches
 CONFIGS=$ROOTPATH/configs
 RECIPIENTS=somebody@somecompany.com
 
-
-USERNAME=username
-PASSWORD=password
-
 DATETIME=$(date +%Y-%m-%d-%H:%M:%S)
 
+if [ -e "$SETTINGS/passwords" ]
+then
+    . $SETTINGS/procurve-watch.conf
+else
+    echo "File $SETTINGS/passwords"
+fi
+
+for x in $SWITCHPATH $CONFIGS
+do
+    if [ ! -e $x ]
+    then
+        mkdir $x
+    fi
+done
 
 email-diff () {
 
     SWITCH=$1
     LOG=$CONFIGS/$SWITCH/$SWITCH.log
     REPORTEDCHANGES=$CONFIGS/$SWITCH/$SWITCH-reported-changes.log
-    cat $LOG | mail -s "PROCURVE WATCH: $SWITCH was modified." $RECIPIENTS
+    cat $LOG | mail -s "PROCURVE WATCH: $SWITCH configuration was modified." $RECIPIENTS
     echo "Changes for $DATETIME -----------" >> $REPORTEDCHANGES
     cat $LOG >> $REPORTEDCHANGES 
 }
@@ -36,13 +47,15 @@ diff-config () {
 
     diff -c10 $OLDCONFIG $NEWCONFIG > $LOG
     DIFFER=$?
-    rm $OLDCONFIG
-    ln -s $NEWCONFIG $OLDCONFIG
 
     if [ $DIFFER == 1 ] 
     then
         cp $LOG $LOG-$DATETIME.changed
         email-diff $SWITCH
+        rm $OLDCONFIG
+        ln -s $NEWCONFIG $OLDCONFIG
+    else
+        rm $NEWCONFIG
     fi
 }
 
@@ -50,22 +63,44 @@ fetch-config () {
 
     SWITCH=$1
     LOGDIR=$CONFIGS/$SWITCH
+    ERRORLOG=$CONFIGS/$SWITCH/error-log.txt
 
     if [ ! -e $LOGDIR ]
     then
         mkdir $CONFIGS/$SWITCH
     fi
 
-    sshpass -p"$PASSWORD" scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg
-    diff-config $SWITCH
+    if [ $USESSHKEYS == False ]
+    then
+        sshpass -p"$PASSWORD" scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg >> $ERRORLOG 2>&1
+    elif [ $USESSHKEYS == True ]
+    then
+        scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg >> $ERRORLOG 2>&1
+    fi
+    diff-config $SWITCH >> $ERRORLOG 2>&1
 }
 
 echo "Start"
-for x in `cat $SWITCHPATH/*.txt`
+
+ALLTHESWITCHES=$(cat $SWITCHPATH/*.txt)
+
+COUNTER=0
+
+for x in $ALLTHESWITCHES
 do
+    if [ -z $x ]
+    then
+        continue
+    fi
     echo "Fetching config for switch $x..."
     fetch-config $x &
-    
+
+    ((COUNTER++))
+    STATE=$(expr $COUNTER % $PARALLEL)
+    if [ $STATE == 0 ]
+    then
+        sleep $COOLDOWN
+    fi
 done
 echo "Finished."
 
