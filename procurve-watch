@@ -5,7 +5,7 @@ ROOTPATH=$(dirname $0)
 SETTINGS=$ROOTPATH/etc/procurve-watch.conf
 
 SWITCHPATH=$ROOTPATH/switches
-CONFIGS=$ROOTPATH/configs
+CONFIGSPATH=$ROOTPATH/configs
 
 DATETIME=$(date +%Y-%m-%d-%H:%M:%S)
 
@@ -17,7 +17,7 @@ else
     exit 1
 fi
 
-for x in $SWITCHPATH $CONFIGS
+for x in $SWITCHPATH $CONFIGSPATH
 do
     if [ ! -e $x ]
     then
@@ -28,8 +28,10 @@ done
 email-diff () {
 
     SWITCH=$1
-    LOG=$CONFIGS/$SWITCH/$SWITCH.log
-    REPORTEDCHANGES=$CONFIGS/$SWITCH/$SWITCH-reported-changes.log
+    SWITCHCONFIG_OUTPUTDIR=$2
+
+    LOG=$SWITCHCONFIG_OUTPUTDIR/$SWITCH.log
+    REPORTEDCHANGES=$LOG/$SWITCH-reported-changes.log
     cat $LOG | mail -s "PROCURVE WATCH: $SWITCH configuration was modified." $RECIPIENTS
     echo "Changes for $DATETIME -----------" >> $REPORTEDCHANGES
     cat $LOG >> $REPORTEDCHANGES 
@@ -38,7 +40,9 @@ email-diff () {
 diff-switch-config () {
 
     SWITCH=$1
-    LOGDIR=$CONFIGS/$SWITCH
+    SWITCHCONFIG_OUTPUTDIR=$2
+
+    LOGDIR=$SWITCHCONFIG_OUTPUTDIR
     NEWCONFIG=$LOGDIR/$SWITCH-$DATETIME.cfg
     OLDCONFIG=$LOGDIR/$SWITCH-LATEST.cfg
     LOG=$LOGDIR/$SWITCH.log
@@ -52,7 +56,7 @@ diff-switch-config () {
         if [ $DIFFER == 1 ] 
         then
             cp $LOG $LOG-$DATETIME.changed
-            email-diff $SWITCH
+            email-diff $SWITCH $LOGDIR
             rm $OLDCONFIG
             ln -s $NEWCONFIG $OLDCONFIG
         else
@@ -67,12 +71,14 @@ diff-switch-config () {
 fetch-config () {
 
     SWITCH=$1
-    LOGDIR=$CONFIGS/$SWITCH
-    ERRORLOG=$CONFIGS/$SWITCH/error-log.txt
+    SWITCHCONFIG_OUTPUTDIR=$2
+
+    LOGDIR=$SWITCHCONFIG_OUTPUTDIR
+    ERRORLOG=$LOGDIR/error-log.txt
 
     if [ ! -e $LOGDIR ]
     then
-        mkdir $CONFIGS/$SWITCH
+        mkdir $LOGDIR
     fi
 
 
@@ -83,31 +89,53 @@ fetch-config () {
     then
         scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg >> $ERRORLOG 2>&1
     fi
-    diff-switch-config $SWITCH >> $ERRORLOG 2>&1
+    diff-switch-config $SWITCH $SWITCHCONFIG_OUTPUTDIR >> $ERRORLOG 2>&1
+}
+
+
+process_list_of_switches () {
+    
+    FILE_LISTOFSWITCHES=$1
+    GROUPCONFIG_OUTPUTDIR=$CONFIGSPATH/${FILE_LISTOFSWITCHES#$SWITCHPATH}
+    mkdir -p $GROUPCONFIG_OUTPUTDIR
+
+    SWITCHES=$(cat $FILE_LISTOFSWITCHES)
+
+    COUNTER=0
+    for switch in $SWITCHES
+    do
+        if [ -z $switch ]
+        then
+            continue
+        fi
+
+        SWITCHCONFIG_OUTPUTDIR=$GROUPCONFIG_OUTPUTDIR/$switch
+        if [[ ! -e $SWITCHCONFIG_OUTPUTDIR ]]
+        then
+            mkdir -p $SWITCHCONFIG_OUTPUTDIR
+        fi
+
+        echo "Fetching config for switch $switch..."
+        #fetch-config $switch $SWITCHCONFIG_OUTPUTDIR &
+
+        ((COUNTER++))
+        STATE=$(expr $COUNTER % $PARALLEL)
+        if [ $STATE == 0 ]
+        then
+            sleep $COOLDOWN
+        fi
+    done
 }
 
 echo "Start $DATETIME ---------------------------------"
 
-ALLTHESWITCHES=$(cat $SWITCHPATH/*.txt)
-
-COUNTER=0
-
-for x in $ALLTHESWITCHES
+FILES=$(find $SWITCHPATH -type f)
+for x in $FILES
 do
-    if [ -z $x ]
-    then
-        continue
-    fi
-    echo "Fetching config for switch $x..."
-    fetch-config $x &
-
-    ((COUNTER++))
-    STATE=$(expr $COUNTER % $PARALLEL)
-    if [ $STATE == 0 ]
-    then
-        sleep $COOLDOWN
-    fi
+    echo "Processing config file $x"
+    process_list_of_switches $x
 done
+
 echo "Finished."
 
 
