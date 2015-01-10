@@ -36,7 +36,7 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 1. clone this project,
 2. install 'sshpass' (like apt-get install sshpass),
 3. set username password, email address and other settings in etc/procurve-watch.conf,
-4. edit switches/<somefilename>.txt and add the domain name or IP-address of your switches (one per line),
+4. edit switches/(somefilename).txt and add the domain name or IP-address of your switches (one per line),
 5. run 'procurve-watch'. 
 
 ### Monitor changes
