@@ -1,22 +1,20 @@
 #!/bin/bash
 #
-#
-#
 
-ROOTPATH=/home/tnan/procurve
-SETTINGS=$ROOTPATH/etc
+ROOTPATH=$(dirname $0)
+SETTINGS=$ROOTPATH/etc/procurve-watch.conf
 
 SWITCHPATH=$ROOTPATH/switches
 CONFIGS=$ROOTPATH/configs
-RECIPIENTS=somebody@somecompany.com
 
 DATETIME=$(date +%Y-%m-%d-%H:%M:%S)
 
-if [ -e "$SETTINGS/passwords" ]
+if [ -e "$SETTINGS" ]
 then
-    . $SETTINGS/procurve-watch.conf
+    . $SETTINGS
 else
-    echo "File $SETTINGS/passwords"
+    echo "File $SETTINGS missing."
+    exit 1
 fi
 
 for x in $SWITCHPATH $CONFIGS
@@ -37,7 +35,7 @@ email-diff () {
     cat $LOG >> $REPORTEDCHANGES 
 }
 
-diff-config () {
+diff-switch-config () {
 
     SWITCH=$1
     LOGDIR=$CONFIGS/$SWITCH
@@ -45,17 +43,24 @@ diff-config () {
     OLDCONFIG=$LOGDIR/$SWITCH-LATEST.cfg
     LOG=$LOGDIR/$SWITCH.log
 
-    diff -c10 $OLDCONFIG $NEWCONFIG > $LOG
-    DIFFER=$?
-
-    if [ $DIFFER == 1 ] 
+    if [ -e $OLDCONFIG ]
     then
-        cp $LOG $LOG-$DATETIME.changed
-        email-diff $SWITCH
+
+        diff -c10 $OLDCONFIG $NEWCONFIG > $LOG
+        DIFFER=$?
+
+        if [ $DIFFER == 1 ] 
+        then
+            cp $LOG $LOG-$DATETIME.changed
+            email-diff $SWITCH
+            rm $OLDCONFIG
+            ln -s $NEWCONFIG $OLDCONFIG
+        else
+            rm $NEWCONFIG
+        fi
+    else
         rm $OLDCONFIG
         ln -s $NEWCONFIG $OLDCONFIG
-    else
-        rm $NEWCONFIG
     fi
 }
 
@@ -70,17 +75,18 @@ fetch-config () {
         mkdir $CONFIGS/$SWITCH
     fi
 
-    if [ $USESSHKEYS == False ]
+
+    if [ $USESSHKEYS == "No" ]
     then
         sshpass -p"$PASSWORD" scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg >> $ERRORLOG 2>&1
-    elif [ $USESSHKEYS == True ]
+    elif [ $USESSHKEYS == "Yes" ]
     then
         scp $USERNAME@$SWITCH:cfg/running-config $LOGDIR/$SWITCH-$DATETIME.cfg >> $ERRORLOG 2>&1
     fi
-    diff-config $SWITCH >> $ERRORLOG 2>&1
+    diff-switch-config $SWITCH >> $ERRORLOG 2>&1
 }
 
-echo "Start"
+echo "Start $DATETIME ---------------------------------"
 
 ALLTHESWITCHES=$(cat $SWITCHPATH/*.txt)
 
