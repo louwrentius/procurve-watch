@@ -1,5 +1,8 @@
 # procurve-watch
-Creating backups and monitoring changes on HP Procurve switches through SSH.
+Creating backups of and monitoring changes on HP Procurve switches through SSH.
+------------------
+UNTESTED SOFTWARE
+-----------------
 
 You will have a folder for each switch containing its current and previous configuration.
 You will receive an email if a change is detected.
@@ -36,8 +39,14 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 1. clone this project,
 2. install 'sshpass' (like apt-get install sshpass),
 3. set username password, email address and other settings in etc/procurve-watch.conf,
-4. edit switches/(somefilename).txt and add the domain name or IP-address of your switches (one per line),
+4. edit switches/(somefilename) and add the domain name or IP-address of your switches (one per line),
 5. run 'procurve-watch'. 
+
+### organising your switches
+
+You can create a directory structure under the 'switches' folder. For example, you can create folders
+for different sites. The folder structure you create here will be mimicked in the configs folder so 
+you can quickly navigate to the appropriate switch configuration backup.
 
 ### Monitor changes
 
