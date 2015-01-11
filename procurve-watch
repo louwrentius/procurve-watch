@@ -116,7 +116,7 @@ process_list_of_switches () {
         fi
 
         echo "Fetching config for switch $switch..."
-        #fetch-config $switch $SWITCHCONFIG_OUTPUTDIR &
+        fetch-config $switch $SWITCHCONFIG_OUTPUTDIR &
 
         ((COUNTER++))
         STATE=$(expr $COUNTER % $PARALLEL)
