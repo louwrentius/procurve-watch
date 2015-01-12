@@ -43,7 +43,8 @@ diff-switch-config () {
     SWITCHCONFIG_OUTPUTDIR=$2
 
     LOGDIR=$SWITCHCONFIG_OUTPUTDIR
-    NEWCONFIG=$LOGDIR/$SWITCH-$DATETIME.cfg
+    NEWCONFIG_FILENAME=$SWITCH-$DATETIME.cfg
+    NEWCONFIG=$LOGDIR/$NEWCONFIG_FILENAME
     OLDCONFIG=$LOGDIR/$SWITCH-LATEST.cfg
     LOG=$LOGDIR/$SWITCH.log
 
@@ -58,13 +59,13 @@ diff-switch-config () {
             cp $LOG $LOG-$DATETIME.changed
             email-diff $SWITCH $LOGDIR
             rm $OLDCONFIG
-            ln -s $NEWCONFIG $OLDCONFIG
+            ln -s $NEWCONFIG_FILENAME $OLDCONFIG
         else
             rm $NEWCONFIG
         fi
     else
         rm $OLDCONFIG
-        ln -s $NEWCONFIG $OLDCONFIG
+        ln -s $NEWCONFIG_FILENAME $OLDCONFIG
     fi
 }
 
