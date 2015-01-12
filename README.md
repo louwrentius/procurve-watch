@@ -28,7 +28,7 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 
 - Requirements
 
-1. the ssh public key of the switches must be present in the 'known_hosts' file,
+1. the ssh public key of the switches must be present in the 'known_hosts' file (maybe use ssh-keyscan),
 2. you need to enable ssh file transfers with 'ip ssh filetransfer'.
 
 - Action plan:
