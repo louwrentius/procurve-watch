@@ -26,12 +26,12 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 
 ### How do I get started?
 
-- Requirements
+#### Requirements
 
 1. the ssh public key of the switches must be present in the 'known_hosts' file (maybe use ssh-keyscan),
 2. you need to enable ssh file transfers with 'ip ssh filetransfer'.
 
-- Action plan:
+#### Action plan
 
 1. clone this project,
 2. install 'sshpass' (like apt-get install sshpass),
@@ -39,7 +39,7 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 4. edit switches/(somefilename) and add the domain name or IP-address of your switches (one per line),
 5. run 'procurve-watch'. 
 
-Security: make sure that the entire procurve-watch folder structure is not accessible to other users.
+**Security**: make sure that the entire procurve-watch folder structure is not accessible to other users.
 Consider applying a chmod -R 600 on ./etc, ./configs and ./switches.
 
 ### Organising your switches
