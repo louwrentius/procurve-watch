@@ -39,6 +39,9 @@ Procurve-watch does not need any special privileges and can be run by an unprivi
 4. edit switches/(somefilename) and add the domain name or IP-address of your switches (one per line),
 5. run 'procurve-watch'. 
 
+Security: make sure that the entire procurve-watch folder structure is not accessible to other users.
+Consider applying a chmod -R 600 on ./etc, ./configs and ./switches.
+
 ### Organising your switches
 
 You can create a directory structure under the 'switches' folder. For example, you can create folders
