@@ -1,4 +1,7 @@
 # procurve-watch
+
+** This project is no longer maintained. I'm not using it anymore because I changed employers at that time. **
+
 Creating backups of and monitoring changes on HP Procurve switches through SSH.
 
 You will have a folder for each switch containing its current and previous configuration.
