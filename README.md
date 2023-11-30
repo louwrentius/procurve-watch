@@ -1,6 +1,6 @@
 # procurve-watch
 
-**This project is no longer maintained. I'm not using it anymore because I changed employers at that time.**
+# This project is no longer maintained. I'm not using it anymore because I changed employers at that time.
 
 Creating backups of and monitoring changes on HP Procurve switches through SSH.
 
